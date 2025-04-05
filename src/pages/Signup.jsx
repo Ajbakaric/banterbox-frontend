@@ -32,8 +32,14 @@ const Signup = ({ setUser }) => {
       setUser(res.data.user);
       navigate('/chatrooms');
     } catch (err) {
-      console.error('Signup failed', err.response?.data || err);
-      alert(`Signup failed: ${err.response?.data?.errors?.join(', ') || 'Unknown error'}`);
+      const message =
+        err?.response?.data?.errors?.join(', ') ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Unknown error';
+    
+      console.error('Signup failed', err);
+      alert(`Signup failed: ${message}`);
     }
   };
 
