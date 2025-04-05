@@ -8,6 +8,8 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 
+const API = import.meta.env.VITE_API_URL;
+
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +23,7 @@ function App() {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       window.axios = axios; // ✅ Makes axios available in DevTools
 
-      axios.get('http://localhost:3000/profile')
+      axios.get(`${API}/profile`)
       .then((res) => {
         console.log('[🐛DEBUG] Profile response:', res.data);
         setUser(res.data.user);
