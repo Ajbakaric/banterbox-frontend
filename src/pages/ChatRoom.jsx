@@ -3,9 +3,10 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { createConsumer } from '@rails/actioncable';
 
+// Environment-safe URLs
 const API = import.meta.env.VITE_API_URL;
-const WS_URL = API.replace(/^http/, 'ws');
-const consumer = createConsumer(`${WS_URL}/cable`);
+const cableURL = import.meta.env.VITE_CABLE_URL;
+const consumer = createConsumer(cableURL);
 
 const ChatRoom = ({ user }) => {
   const { id } = useParams();
