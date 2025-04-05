@@ -3,7 +3,7 @@ import axios from 'axios';  // Use default axios directly
  // adjust path if needed
 
 import { useNavigate } from 'react-router-dom';
-
+const API = import.meta.env.VITE_API_URL;
 const Signup = ({ setUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +21,7 @@ const Signup = ({ setUser }) => {
     if (avatar) formData.append('user[avatar]', avatar);
   
     try {
-      const res = await axios.post('http://localhost:3000/signup', formData, {
+      const res = await axios.post(`${API}/signup`, formData, {
         headers: {
           'Accept': 'application/json'
         }
