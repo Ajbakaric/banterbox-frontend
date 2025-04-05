@@ -8,12 +8,15 @@ const Profile = ({ user, setUser }) => {
   const [email, setEmail] = useState(user?.email || '');
   const [avatar, setAvatar] = useState(null);
 
-  useEffect(() => {
+  const setAuthHeader = () => {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+  };
 
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
+  useEffect(() => {
+    setAuthHeader();
     axios.get(`${API}/profile`)
       .then(res => {
         setUser(res.data.user);
@@ -21,7 +24,7 @@ const Profile = ({ user, setUser }) => {
         setEmail(res.data.user.email);
       })
       .catch(err => {
-        console.error('Failed to load profile:', err);
+        console.error('Failed to load profile:', err.response?.data || err);
         alert('Session expired. Please log in again.');
         localStorage.removeItem('token');
         delete axios.defaults.headers.common['Authorization'];
@@ -30,18 +33,20 @@ const Profile = ({ user, setUser }) => {
   }, []);
 
   const refreshUser = async () => {
+    setAuthHeader();
     try {
       const res = await axios.get(`${API}/profile`);
       setUser(res.data.user);
       setUsername(res.data.user.username);
       setEmail(res.data.user.email);
     } catch (err) {
-      console.error('Failed to refresh user:', err);
+      console.error('Failed to refresh user:', err.response?.data || err);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setAuthHeader();
 
     try {
       await axios.put(`${API}/profile`, {
@@ -52,12 +57,13 @@ const Profile = ({ user, setUser }) => {
       alert('Profile updated!');
     } catch (err) {
       alert('Update failed.');
-      console.error(err);
+      console.error(err.response?.data || err);
     }
   };
 
   const handleAvatarUpload = async () => {
     if (!avatar) return alert('Select an image first.');
+    setAuthHeader();
 
     const formData = new FormData();
     formData.append('user[avatar]', avatar);
@@ -73,7 +79,7 @@ const Profile = ({ user, setUser }) => {
       alert('Avatar uploaded!');
     } catch (err) {
       alert('Avatar upload failed.');
-      console.error(err);
+      console.error(err.response?.data || err);
     }
   };
 
