@@ -3,7 +3,9 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { createConsumer } from '@rails/actioncable';
 
-const consumer = createConsumer('ws://localhost:3000/cable');
+const API = import.meta.env.VITE_API_URL;
+const WS_URL = API.replace(/^http/, 'ws');
+const consumer = createConsumer(`${WS_URL}/cable`);
 
 const ChatRoom = ({ user }) => {
   const { id } = useParams();
@@ -14,11 +16,13 @@ const ChatRoom = ({ user }) => {
   const [editingContent, setEditingContent] = useState('');
   const messagesEndRef = useRef();
 
+  const token = localStorage.getItem('token');
+
   const fetchMessages = async () => {
     try {
-      const res = await axios.get(`http://localhost:3000/api/v1/chat_rooms/${id}/messages`, {
+      const res = await axios.get(`${API}/api/v1/chat_rooms/${id}/messages`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       setMessages(res.data);
@@ -62,19 +66,19 @@ const ChatRoom = ({ user }) => {
 
     try {
       const res = await axios.post(
-        `http://localhost:3000/api/v1/chat_rooms/${id}/messages`,
+        `${API}/api/v1/chat_rooms/${id}/messages`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${token}`,
             Accept: 'application/json',
             'Content-Type': 'multipart/form-data',
           },
         }
       );
 
-      setMessages((prevMessages) => {
-        const newMessages = [...prevMessages, res.data];
+      setMessages((prev) => {
+        const newMessages = [...prev, res.data];
         const uniqueMessages = Array.from(
           new Map(newMessages.map(msg => [`${msg.id}-${msg.created_at}`, msg])).values()
         );
@@ -97,16 +101,15 @@ const ChatRoom = ({ user }) => {
   const handleEdit = async (messageId) => {
     try {
       const res = await axios.patch(
-        `http://localhost:3000/api/v1/chat_rooms/${id}/messages/${messageId}`,
+        `${API}/api/v1/chat_rooms/${id}/messages/${messageId}`,
         { message: { content: editingContent } },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      // 🐛 Preserve sender info during update
       setMessages((prev) =>
         prev.map((m) =>
           m.id === messageId ? { ...m, ...res.data } : m
@@ -123,10 +126,10 @@ const ChatRoom = ({ user }) => {
   const deleteMessage = async (messageId) => {
     try {
       await axios.delete(
-        `http://localhost:3000/api/v1/chat_rooms/${id}/messages/${messageId}`,
+        `${API}/api/v1/chat_rooms/${id}/messages/${messageId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );

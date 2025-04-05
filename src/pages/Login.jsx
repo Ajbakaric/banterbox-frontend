@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';  // Use the default axios import
 import { useNavigate } from 'react-router-dom';
-
+const API = import.meta.env.VITE_API_URL;
 const Login = ({ setUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -9,28 +9,29 @@ const Login = ({ setUser }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+  
     try {
-      const res = await axios.post('http://localhost:3000/login', {
-        user: { email, password },
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json' // 🪲 This tells Rails: “This is JSON, not HTML!”
+      const res = await axios.post(`${API}/login`, 
+        { user: { email, password } }, 
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
         }
-      });
-      
-      
+      );
+  
       const token = res.data.token;
       localStorage.setItem('token', token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;  // Set token in default axios
-  
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setUser(res.data.user);
       navigate('/chatrooms');
     } catch (err) {
-      console.error('Login failed:', err);
-      alert('Invalid credentials');
+      console.error('Login failed', err.response?.data || err);
+      alert(`Login failed: ${err.response?.data?.error || 'Unknown error'}`);
     }
   };
+  
   
 
   return (

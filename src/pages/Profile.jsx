@@ -1,15 +1,40 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+
+const API = import.meta.env.VITE_API_URL;
 
 const Profile = ({ user, setUser }) => {
   const [username, setUsername] = useState(user?.username || '');
   const [email, setEmail] = useState(user?.email || '');
   const [avatar, setAvatar] = useState(null);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+    axios.get(`${API}/profile`)
+      .then(res => {
+        setUser(res.data.user);
+        setUsername(res.data.user.username);
+        setEmail(res.data.user.email);
+      })
+      .catch(err => {
+        console.error('Failed to load profile:', err);
+        alert('Session expired. Please log in again.');
+        localStorage.removeItem('token');
+        delete axios.defaults.headers.common['Authorization'];
+        window.location.href = '/login';
+      });
+  }, []);
+
   const refreshUser = async () => {
     try {
-      const res = await axios.get('/profile');
+      const res = await axios.get(`${API}/profile`);
       setUser(res.data.user);
+      setUsername(res.data.user.username);
+      setEmail(res.data.user.email);
     } catch (err) {
       console.error('Failed to refresh user:', err);
     }
@@ -17,12 +42,13 @@ const Profile = ({ user, setUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      const res = await axios.put('http://localhost:3000/profile', {
+      await axios.put(`${API}/profile`, {
         user: { username, email },
       });
 
-      await refreshUser(); // ✅ get updated avatar_url if changed
+      await refreshUser();
       alert('Profile updated!');
     } catch (err) {
       alert('Update failed.');
@@ -37,13 +63,13 @@ const Profile = ({ user, setUser }) => {
     formData.append('user[avatar]', avatar);
 
     try {
-      const res = await axios.put('http://localhost:3000/profile', formData, {
+      await axios.put(`${API}/profile`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      await refreshUser(); // ✅ refresh data after avatar update
+      await refreshUser();
       alert('Avatar uploaded!');
     } catch (err) {
       alert('Avatar upload failed.');

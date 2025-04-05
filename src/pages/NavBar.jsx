@@ -1,14 +1,15 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';  // Use default axios directly
-// adjust path if needed
-
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const NavBar = ({ user, setUser }) => {
+  const navigate = useNavigate();
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
+    navigate('/login');
   };
 
   return (
