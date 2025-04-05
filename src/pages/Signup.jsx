@@ -23,10 +23,11 @@ const Signup = ({ setUser }) => {
     try {
       const res = await axios.post(`${API}/signup`, formData, {
         headers: {
-          'Accept': 'application/json'
-        }
+          'Accept': 'application/json',
+        },
+        withCredentials: true
       });
-  
+      
       localStorage.setItem('token', res.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
       setUser(res.data.user);
